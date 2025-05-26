@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--color-stone-50);
+}
+
+.logo-text {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
