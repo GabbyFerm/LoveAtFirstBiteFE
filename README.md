@@ -1,54 +1,69 @@
-# React + TypeScript + Vite
+# 🍽️ LoveAtFirstBite – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the **frontend** for the group project **Lunch Voting App**, built with **React**, **TypeScript**, and **Tailwind CSS**.  
+Users can register, log in, vote for lunch restaurants, and view results in a responsive UI.
 
-Currently, two official plugins are available:
+> 🔗 Backend repo: [LoveAtFirstBite]([https://github.com/GabbyFerm/LoveAtFirstBiteAPI](https://github.com/GabbyFerm/LoveAtFirstBite)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🧰 Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- GitHub Projects / GitHub Pages (planned)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🧱 Components Overview
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Component         | Purpose                                      |
+|-------------------|----------------------------------------------|
+| `AuthLayout`      | Login & Register layout                      |
+| `Dashboard`       | Main layout after login                      |
+| `Header`          | Logo + navigation buttons                    |
+| `RestaurantGrid`  | Lists all restaurants as cards               |
+| `TopVoted`        | Displays today's top-voted restaurant(s)     |
+| `Footer`          | Bottom bar with reset button                 |
+| `LoginForm`       | Login form component                         |
+| `RegisterForm`    | Register form component                      |
+| `LogoBox`         | Stylized logo title                          |
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+---
+
+## ✅ Core Features (Frontend)
+
+- Register & login user using backend API
+- Add new restaurants to the shared list
+- Vote once per user per day
+- View today’s top-voted restaurant
+- Reset votes manually (auto-reset to be handled in backend)
+- Fully responsive layout (mobile/tablet/desktop)
+
+---
+
+## 🧪 Non-Functional Requirements (Frontend)
+
+- Fast initial load using Vite
+- API-friendly layout and request structure
+- Clean component-based structure
+- Tailwind CSS for consistent styling
+- GitHub repo with protected `main` branch
+
+---
+
+## 🔄 Future Enhancements
+
+- Add loading spinners, success/error messages
+- Add profile/user settings page
+- Improve vote animations/interactions
+
+---
+
+## 👥 Contributors
+
+- [@GabbyFerm](https://github.com/GabbyFerm) – Frontend layout, mockups, backend dev
+- [@Mohanad Al-Daghestani](https://github.com/mohald-3) – Backend API, authentication
+- [@Tomas Steifo](https://github.com/TomasSteifo) – Database design, backend logic
+- [@Hanan Ahmed](https://github.com/ITHanan) – Backend logic, integration
