@@ -63,7 +63,7 @@ Users can register, log in, vote for lunch restaurants, and view results in a re
 
 ## 👥 Contributors
 
-- [@GabbyFerm](https://github.com/GabbyFerm) – Frontend layout, mockups, backend dev
-- [@Mohanad Al-Daghestani](https://github.com/mohald-3) – Backend API, authentication
-- [@Tomas Steifo](https://github.com/TomasSteifo) – Database design, backend logic
-- [@Hanan Ahmed](https://github.com/ITHanan) – Backend logic, integration
+- [@GabbyFerm](https://github.com/GabbyFerm) – Backend development, frontend layout, mockups
+- [@Mohanad Al-Daghestani](https://github.com/mohald-3) – Backend development
+- [@Tomas Steifo](https://github.com/TomasSteifo) – Backend development
+- [@Hanan Ahmed](https://github.com/ITHanan) – Backend development
