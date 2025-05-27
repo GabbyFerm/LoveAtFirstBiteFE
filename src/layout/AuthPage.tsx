@@ -22,19 +22,13 @@ function AuthPage({ onLoginSuccess }: { onLoginSuccess: () => void }) {
             className="w-full max-w-md p-6"
             style={{ backgroundColor: "rgba(195, 175, 166, 0.5)" }}
           >
-            <RegisterForm />
+            <RegisterForm onRegisterSuccess={onLoginSuccess} />
           </div>
           <div
             className="w-full max-w-md p-6"
             style={{ backgroundColor: "rgba(195, 175, 166, 0.5)" }}
           >
-            <LoginForm /> <br></br>
-            <button
-              onClick={onLoginSuccess}
-              className="bg-lime-700 text-stone-50 text-sm px-4 py-2 rounded-full hover:bg-lime-600 rounded cursor-pointer"
-            >
-              Fake login
-            </button>
+            <LoginForm onLoginSuccess={onLoginSuccess} />
           </div>
         </div>
       </div>

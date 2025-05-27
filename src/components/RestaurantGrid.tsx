@@ -1,26 +1,19 @@
 import { useMemo } from "react";
 
-// Mock data with image filenames
-const restaurants = [
-  {
-    id: 1,
-    name: "Pizza Palace",
-    address: "Storgatan 1",
-    image: "restaurant1.jpg",
-  },
-  {
-    id: 2,
-    name: "Taco Town",
-    address: "Kungsgatan 3",
-    image: "restaurant2.jpg",
-  },
-];
+interface Restaurant {
+  restaurantId: number;
+  restaurantName: string;
+  address: string;
+}
 
-// Load all images from assets folder
-const images = import.meta.glob("../assets/*.jpg", { eager: true, as: "url" });
+function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
+  // Dynamically import all images in assets folder
+  const images = import.meta.glob("../assets/*.jpg", {
+    eager: true,
+    as: "url",
+  });
 
-function RestaurantGrid() {
-  // Build a map of filename to URL
+  // Map filenames to URLs
   const imageMap = useMemo(() => {
     const map: Record<string, string> = {};
     for (const path in images) {
@@ -30,25 +23,39 @@ function RestaurantGrid() {
     return map;
   }, []);
 
+  // Array of available image filenames (for random fallback)
+  const fallbackImages = Object.keys(imageMap);
+
+  if (!restaurants.length) {
+    return <p className="text-stone-500">No restaurants yet. Add one!</p>;
+  }
+
   return (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-      {restaurants.map((restaurant) => (
-        <div
-          key={restaurant.id}
-          className="bg-white rounded shadow-md p-4 text-center"
-        >
-          <img
-            src={imageMap[restaurant.image]}
-            alt={restaurant.name}
-            className="w-full h-40 object-cover mb-2 rounded"
-          />
-          <h3 className="text-xl font-semibold">{restaurant.name}</h3>
-          <p className="text-stone-600">{restaurant.address}</p>
-          <button className="mt-4 bg-lime-700 text-white px-4 py-2 rounded-full hover:bg-stone-600 rounded cursor-pointer">
-            Vote
-          </button>
-        </div>
-      ))}
+      {restaurants.map((restaurant, index) => {
+        const imageFile =
+          fallbackImages[index % fallbackImages.length] || fallbackImages[0];
+
+        return (
+          <div
+            key={restaurant.restaurantId}
+            className="bg-white rounded shadow-md p-4 text-center"
+          >
+            <img
+              src={imageMap[imageFile]}
+              alt={restaurant.restaurantName}
+              className="w-full h-40 object-cover mb-2 rounded"
+            />
+            <h3 className="text-xl font-semibold">
+              {restaurant.restaurantName}
+            </h3>
+            <p className="text-stone-600">{restaurant.address}</p>
+            <button className="mt-4 bg-lime-700 text-white px-4 py-2 rounded-full hover:bg-stone-600 cursor-pointer">
+              Vote
+            </button>
+          </div>
+        );
+      })}
     </section>
   );
 }
