@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 
 interface Restaurant {
@@ -10,7 +10,15 @@ interface Restaurant {
 function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
   const [votedRestaurantId, setVotedRestaurantId] = useState<number | null>(null);
 
-  // Dynamically import all images in assets folder
+  // Load persisted vote from localStorage on mount
+  useEffect(() => {
+    const storedVote = localStorage.getItem("votedRestaurantId");
+    if (storedVote) {
+      setVotedRestaurantId(parseInt(storedVote));
+    }
+  }, []);
+
+  // Load images dynamically
   const images = import.meta.glob("../assets/*.jpg", {
     eager: true,
     as: "url",
@@ -55,7 +63,10 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
       });
 
       alert(isChanging ? "Vote changed!" : "Vote cast successfully!");
+
+      // Update and persist vote state
       setVotedRestaurantId(restaurantId);
+      localStorage.setItem("votedRestaurantId", restaurantId.toString());
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.[0] || error.response?.data || "Vote failed.";
