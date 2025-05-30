@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
+import axios from "axios";
 
 interface Restaurant {
   restaurantId: number;
@@ -7,13 +8,14 @@ interface Restaurant {
 }
 
 function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
+  const [votedRestaurantId, setVotedRestaurantId] = useState<number | null>(null);
+
   // Dynamically import all images in assets folder
   const images = import.meta.glob("../assets/*.jpg", {
     eager: true,
     as: "url",
   });
 
-  // Map filenames to URLs
   const imageMap = useMemo(() => {
     const map: Record<string, string> = {};
     for (const path in images) {
@@ -23,8 +25,43 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
     return map;
   }, []);
 
-  // Array of available image filenames (for random fallback)
   const fallbackImages = Object.keys(imageMap);
+
+  const handleVote = async (restaurantId: number) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("No auth token found.");
+      return;
+    }
+
+    const isChanging = votedRestaurantId !== null;
+
+    try {
+      const url = isChanging
+        ? "https://localhost:7211/api/vote/change"
+        : "https://localhost:7211/api/vote";
+      const method = isChanging ? "put" : "post";
+
+      const response = await axios({
+        method,
+        url,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          restaurantId,
+        },
+      });
+
+      alert(isChanging ? "Vote changed!" : "Vote cast successfully!");
+      setVotedRestaurantId(restaurantId);
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.[0] || error.response?.data || "Vote failed.";
+      alert(errorMsg);
+    }
+  };
 
   if (!restaurants.length) {
     return <p className="text-stone-500">No restaurants yet. Add one!</p>;
@@ -35,6 +72,7 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
       {restaurants.map((restaurant, index) => {
         const imageFile =
           fallbackImages[index % fallbackImages.length] || fallbackImages[0];
+        const isPreviouslyVoted = restaurant.restaurantId === votedRestaurantId;
 
         return (
           <div
@@ -50,8 +88,22 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
               {restaurant.restaurantName}
             </h3>
             <p className="text-stone-600">{restaurant.address}</p>
-            <button className="mt-4 bg-lime-700 text-white px-4 py-2 rounded-full hover:bg-stone-600 cursor-pointer">
-              Vote
+            <button
+              onClick={() => handleVote(restaurant.restaurantId)}
+              disabled={isPreviouslyVoted}
+              className={`mt-4 px-4 py-2 rounded-full text-white transition ${
+                isPreviouslyVoted
+                  ? "bg-stone-400 cursor-not-allowed"
+                  : votedRestaurantId === null
+                  ? "bg-lime-700 hover:bg-stone-600"
+                  : "bg-yellow-600 hover:bg-yellow-700"
+              }`}
+            >
+              {votedRestaurantId === null
+                ? "Vote"
+                : isPreviouslyVoted
+                ? "Voted"
+                : "Change Vote"}
             </button>
           </div>
         );
