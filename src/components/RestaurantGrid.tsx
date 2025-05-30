@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import axios from "axios";
 
 interface Restaurant {
@@ -8,22 +8,15 @@ interface Restaurant {
 }
 
 function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
-  const [votedRestaurantId, setVotedRestaurantId] = useState<number | null>(null);
+  const [userVote, setUserVote] = useState<null | { restaurantId: number }>(null);
 
-  // Load persisted vote from localStorage on mount
-  useEffect(() => {
-    const storedVote = localStorage.getItem("votedRestaurantId");
-    if (storedVote) {
-      setVotedRestaurantId(parseInt(storedVote));
-    }
-  }, []);
-
-  // Load images dynamically
+  // Dynamically import all images in assets folder
   const images = import.meta.glob("../assets/*.jpg", {
     eager: true,
     as: "url",
   });
 
+  // Map filenames to URLs
   const imageMap = useMemo(() => {
     const map: Record<string, string> = {};
     for (const path in images) {
@@ -33,40 +26,45 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
     return map;
   }, []);
 
+  // Array of available image filenames (for random fallback)
   const fallbackImages = Object.keys(imageMap);
 
+  // Load user vote from localStorage on mount
+  useEffect(() => {
+    const savedVote = localStorage.getItem("userVote");
+    if (savedVote) {
+      setUserVote(JSON.parse(savedVote));
+    }
+  }, []);
+
+  // Handle vote or change vote
   const handleVote = async (restaurantId: number) => {
     const token = localStorage.getItem("authToken");
-    if (!token) {
-      alert("No auth token found.");
-      return;
-    }
+    if (!token) return;
 
-    const isChanging = votedRestaurantId !== null;
+    const url = userVote
+      ? "https://localhost:7211/api/vote/Change"
+      : "https://localhost:7211/api/vote";
 
     try {
-      const url = isChanging
-        ? "https://localhost:7211/api/vote/change"
-        : "https://localhost:7211/api/vote";
-      const method = isChanging ? "put" : "post";
-
       const response = await axios({
-        method,
+        method: userVote ? "put" : "post",
         url,
+        data: { restaurantId },
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        data: {
-          restaurantId,
-        },
       });
 
-      alert(isChanging ? "Vote changed!" : "Vote cast successfully!");
+      setUserVote({ restaurantId });
+      localStorage.setItem("userVote", JSON.stringify({ restaurantId }));
 
-      // Update and persist vote state
-      setVotedRestaurantId(restaurantId);
-      localStorage.setItem("votedRestaurantId", restaurantId.toString());
+      alert(
+        userVote
+          ? "Vote changed successfully!"
+          : "Vote cast successfully!"
+      );
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.[0] || error.response?.data || "Vote failed.";
@@ -83,7 +81,9 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
       {restaurants.map((restaurant, index) => {
         const imageFile =
           fallbackImages[index % fallbackImages.length] || fallbackImages[0];
-        const isPreviouslyVoted = restaurant.restaurantId === votedRestaurantId;
+
+        const isCurrentVote =
+          userVote?.restaurantId === restaurant.restaurantId;
 
         return (
           <div
@@ -101,20 +101,18 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
             <p className="text-stone-600">{restaurant.address}</p>
             <button
               onClick={() => handleVote(restaurant.restaurantId)}
-              disabled={isPreviouslyVoted}
-              className={`mt-4 px-4 py-2 rounded-full text-white transition ${
-                isPreviouslyVoted
-                  ? "bg-stone-400 cursor-not-allowed"
-                  : votedRestaurantId === null
-                  ? "bg-lime-700 hover:bg-stone-600"
-                  : "bg-yellow-600 hover:bg-yellow-700"
+              className={`mt-4 px-4 py-2 rounded-full text-white transition-all duration-200 ${
+                isCurrentVote
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-lime-700 hover:bg-stone-600 cursor-pointer"
               }`}
+              disabled={isCurrentVote}
             >
-              {votedRestaurantId === null
-                ? "Vote"
-                : isPreviouslyVoted
+              {isCurrentVote
                 ? "Voted"
-                : "Change Vote"}
+                : userVote
+                ? "Change Vote"
+                : "Vote"}
             </button>
           </div>
         );
