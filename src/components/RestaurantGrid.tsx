@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
+import axios from "axios";
 
 interface Restaurant {
   restaurantId: number;
@@ -6,7 +7,17 @@ interface Restaurant {
   address: string;
 }
 
+interface UserVote {
+  restaurantId: number;
+  round: number;
+  voteDate: string;
+}
+
+const [userVote, setUserVote] = useState<UserVote | null>(null);
+
 function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
+  const [userVote, setUserVote] = useState<null | { restaurantId: number }>(null);
+
   // Dynamically import all images in assets folder
   const images = import.meta.glob("../assets/*.jpg", {
     eager: true,
@@ -26,6 +37,64 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
   // Array of available image filenames (for random fallback)
   const fallbackImages = Object.keys(imageMap);
 
+  // Load user vote from localStorage on mount
+  useEffect(() => {
+    const fetchUserVote = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      try {
+        const response = await axios.get("/api/vote/user", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setUserVote(response.data);
+      } catch (error) {
+        console.warn("No existing vote found");
+        setUserVote(null);
+      }
+    };
+
+    fetchUserVote();
+  }, []);
+
+  // Handle vote or change vote
+  const handleVote = async (restaurantId: number) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    const url = userVote
+      ? "https://localhost:7211/api/vote/Change"
+      : "https://localhost:7211/api/vote";
+
+    try {
+      const response = await axios({
+        method: userVote ? "put" : "post",
+        url,
+        data: { restaurantId },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      setUserVote({ restaurantId });
+      localStorage.setItem("userVote", JSON.stringify({ restaurantId }));
+
+      alert(
+        userVote
+          ? "Vote changed successfully!"
+          : "Vote cast successfully!"
+      );
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.[0] || error.response?.data || "Vote failed.";
+      alert(errorMsg);
+    }
+  };
+
   if (!restaurants.length) {
     return <p className="text-stone-500">No restaurants yet. Add one!</p>;
   }
@@ -35,6 +104,9 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
       {restaurants.map((restaurant, index) => {
         const imageFile =
           fallbackImages[index % fallbackImages.length] || fallbackImages[0];
+
+        const isCurrentVote =
+          userVote?.restaurantId === restaurant.restaurantId;
 
         return (
           <div
@@ -50,8 +122,20 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
               {restaurant.restaurantName}
             </h3>
             <p className="text-stone-600">{restaurant.address}</p>
-            <button className="mt-4 bg-lime-700 text-white px-4 py-2 rounded-full hover:bg-stone-600 cursor-pointer">
-              Vote
+            <button
+              onClick={() => handleVote(restaurant.restaurantId)}
+              className={`mt-4 px-4 py-2 rounded-full text-white transition-all duration-200 ${
+                isCurrentVote
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-lime-700 hover:bg-stone-600 cursor-pointer"
+              }`}
+              disabled={isCurrentVote}
+            >
+              {isCurrentVote
+                ? "Voted"
+                : userVote
+                ? "Change Vote"
+                : "Vote"}
             </button>
           </div>
         );
