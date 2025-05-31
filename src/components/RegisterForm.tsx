@@ -14,31 +14,49 @@ function RegisterForm({
     password: "",
   });
 
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    setErrorMessages([]); // Clear errors on typing
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessages([]);
 
     try {
       const response = await axios.post(
         "https://localhost:7211/api/Auth/register",
         formData
       );
+
       const token = response.data.data;
 
-      // Save token to localStorage
-      localStorage.setItem("authToken", token);
+      if (!token) throw new Error("No token received");
 
-      // Tell App to show dashboard
+      localStorage.setItem("authToken", token);
       onRegisterSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration failed:", error);
+
+      const responseData = error.response?.data;
+
+      if (Array.isArray(responseData)) {
+        setErrorMessages(responseData);
+      } else if (Array.isArray(responseData?.errors)) {
+        setErrorMessages(responseData.errors); // ✅ Your actual case
+      } else if (typeof responseData === "string") {
+        setErrorMessages([responseData]);
+      } else if (responseData?.errorMessage) {
+        setErrorMessages([responseData.errorMessage]);
+      } else {
+        setErrorMessages(["Registration failed. Try again."]);
+      }
     }
   };
 
@@ -80,12 +98,24 @@ function RegisterForm({
         />
         Show password
       </label>
+      <label className="text-xs text-stone-900 italic -mt-2">
+        Password must be at least 6 characters and include one uppercase letter.
+      </label>
       <button
         type="submit"
         className="bg-stone-700 text-white p-2 rounded-full hover:bg-stone-800 cursor-pointer"
       >
         register
       </button>
+      {errorMessages.length > 0 && (
+        <div className="bg-red-50/50 border border-red-700 text-red-700 px-4 py-3 rounded text-sm">
+          <ul className="list-disc pl-5 space-y-1">
+            {errorMessages.map((msg, index) => (
+              <li key={index}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </form>
   );
 }
