@@ -7,6 +7,14 @@ interface Restaurant {
   address: string;
 }
 
+interface UserVote {
+  restaurantId: number;
+  round: number;
+  voteDate: string;
+}
+
+const [userVote, setUserVote] = useState<UserVote | null>(null);
+
 function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
   const [userVote, setUserVote] = useState<null | { restaurantId: number }>(null);
 
@@ -31,10 +39,25 @@ function RestaurantGrid({ restaurants }: { restaurants: Restaurant[] }) {
 
   // Load user vote from localStorage on mount
   useEffect(() => {
-    const savedVote = localStorage.getItem("userVote");
-    if (savedVote) {
-      setUserVote(JSON.parse(savedVote));
-    }
+    const fetchUserVote = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      try {
+        const response = await axios.get("/api/vote/user", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setUserVote(response.data);
+      } catch (error) {
+        console.warn("No existing vote found");
+        setUserVote(null);
+      }
+    };
+
+    fetchUserVote();
   }, []);
 
   // Handle vote or change vote
