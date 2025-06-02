@@ -13,6 +13,14 @@ interface Restaurant {
   address: string;
 }
 
+interface Votes {
+  voteId: number;
+  restaurantId: number;
+  userId: number;
+  voteDate: string;
+  round: number;
+}
+
 interface DashboardProps {
   username: string;
   onLogout: () => void;
@@ -22,6 +30,10 @@ function Dashboard({ username, onLogout }: DashboardProps) {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [votes, setVotes] = useState<Votes[]>([]);
+  const [currentRound, setCurrentRound] = useState<number | null>(null);
+
+const [voteChanged, setVoteChanged] = useState(false); 
 
   const fetchRestaurants = async () => {
     try {
@@ -41,6 +53,25 @@ function Dashboard({ username, onLogout }: DashboardProps) {
     }
   };
 
+  const fetchVotingData = async () => {
+  try {
+    const token = getToken();
+    const response = await axios.get(
+      "https://localhost:7211/api/Vote/all-votes",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    setVotes(response.data.data);
+    console.log("Fetched votes:", response.data);
+  } catch (error) {
+    console.error("Failed to fetch votes", error);
+  }
+};
+
+
   const handleAddSuccess = () => {
     setShowForm(false);
     setSuccessMessage("Restaurant added successfully!");
@@ -52,6 +83,7 @@ function Dashboard({ username, onLogout }: DashboardProps) {
 
   useEffect(() => {
     fetchRestaurants();
+    fetchVotingData();
   }, []);
 
   return (
@@ -81,12 +113,19 @@ function Dashboard({ username, onLogout }: DashboardProps) {
             <h2 className="text-lg font-semibold mb-4">
               Top restaurant today:
             </h2>
-            <TopVotedRestaurant />
+            <TopVotedRestaurant voteChanged={voteChanged} />
           </section>
 
           <section>
             <h2 className="text-xl font-semibold mb-4">All restaurants</h2>
-            <RestaurantGrid restaurants={restaurants} />
+            <RestaurantGrid
+              restaurants={restaurants}
+              votes={votes}
+              currentRound={currentRound ?? 1}
+              fetchVotingData={fetchVotingData}
+              setVoteChanged={setVoteChanged}
+            />
+
           </section>
         </main>
 
