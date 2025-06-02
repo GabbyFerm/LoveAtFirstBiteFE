@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
 // Define the shape of each restaurant vote tally item returned from the backend
@@ -9,9 +9,8 @@ interface TodayVoteTallyDto {
   isLeader: boolean;
 }
 
-function TopVotedRestaurant() {
+function TopVotedRestaurant({ voteChanged }: { voteChanged: boolean }) {
   const [topVoted, setTopVoted] = useState<TodayVoteTallyDto[]>([]);
-  const [round, setRound] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -36,7 +35,7 @@ function TopVotedRestaurant() {
     const fetchTopVoted = async () => {
       try {
         const response = await axios.get<TodayVoteTallyDto[]>(
-          `https://localhost:7211/api/Vote/today/${round}`
+          `https://localhost:7211/api/Vote/today/1`
         );
 
         const leaders = response.data.filter((item) => item.isLeader);
@@ -52,28 +51,10 @@ function TopVotedRestaurant() {
     };
 
     fetchTopVoted();
-  }, [round]);
+  }, [voteChanged]);
 
   return (
     <div className="p-4">
-      <div className="mb-4 text-center">
-        <label htmlFor="round" className="mr-2 font-medium">
-          Select Round:
-        </label>
-        <select
-          id="round"
-          value={round}
-          onChange={(e) => setRound(Number(e.target.value))}
-          className="border rounded px-2 py-1"
-        >
-          {[1, 2, 3].map((r) => (
-            <option key={r} value={r}>
-              Round {r}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {loading ? (
         <p className="text-stone-600 italic text-center">
           Loading top voted restaurant...
